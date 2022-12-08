@@ -1,10 +1,21 @@
 """
 Obdictive class and class-oriented methods (serializable).
 """
+from __future__ import annotations
 
-from typing import Any, Dict
+import sys
+from typing import Any
 
-from . import deserialization, serialization, json, config
+if sys.version_info >= (3, 9):
+    from builtins import dict as Dict, list as List
+else:
+    # Legacy generic type annotation classes
+    # Deprecated in Python 3.9
+    from typing import List, Dict
+
+from .serialization import dump
+from .deserialization import load
+from . import json, config
 from .decorators import serializable, serializer, deserializer
 from .default_serializers import get_annotations
 
@@ -65,18 +76,18 @@ class Obdictive:
         for name, cls in annotations.items():
             if name in kwargs:  # argument is in keyword arguments
                 value = kwargs[name]
-                value = dict_to_obj.load(cls, value)
+                value = load(cls, value)
                 setattr(self, name, value)
             elif hasattr(self.__class__, name):
                 setattr(self, name, getattr(self.__class__, name))
 
     @serializer
-    def _serializer(self):
+    def _serializer(self) -> dict:
         d: Dict[str, Any] = dict()
         for name, cls in get_annotations(self.__class__).items():
             if hasattr(self, name):
                 val = getattr(self, name)
-                d[name] = obj_to_dict.dump(val)
+                d[name] = dump(val)
         return d
 
     @classmethod
@@ -142,7 +153,7 @@ def _list_str(lst: list):
     return F"[{', '.join(str_list)}]"
 
 
-_sorted_annotations_cache = {}
+_sorted_annotations_cache: Dict[type, List[str]] = {}
 
 
 def _get_sorted_annotations(cls: type):

@@ -1,6 +1,7 @@
 """
 Serialization of python objects to dictionaries and JSON using annotations.
 """
+# mypy: ignore-errors
 
 __version__ = "0.1.0"
 __author__ = 'Elisha Azaria'
@@ -18,8 +19,8 @@ from . import config
 
 del obdictive_class
 del obdictive_enum
-del dict_to_obj
-del obj_to_dict
+del serialization
+del deserialization
 del decorators
 del special_types
 del json

@@ -1,10 +1,23 @@
-from typing import Type, Dict, Union, Tuple, List, overload
+# mypy: disable-error-code=override
+from __future__ import annotations
+
+import sys
+from typing import Union, overload, Generic, TypeVar
+
+from .typevars import K, V, T, T1, T2
+
+if sys.version_info >= (3, 9):
+    from builtins import tuple as Tuple, dict as Dict, list as List, type as Type
+else:
+    # Legacy generic type annotation classes
+    # Deprecated in Python 3.9
+    from typing import List, Dict, Tuple, Type
 
 from .decorators import serializer, deserializer
 from .deserialization import _list_deserializer_impl, _dict_deserializer_impl, _tuple_deserializer_impl
 from .serialization import _list_serializer_impl, _dict_serializer_impl, _tuple_serializer_impl
 from .obdictive_class import serializable
-from .type_vars import T, K, V, T1, T2, T3, T4, T5, T6, T7, T8, TupleOfTypes_TypeVar
+from . import typevars
 
 
 def _full_name(cls):
@@ -14,16 +27,16 @@ def _full_name(cls):
         return F"{cls.__module__}.{cls.__qualname__}"
 
 
-class _OMeta(type):
+class _OMeta(type(list), type(dict), type(tuple)):  # type: ignore[misc]
     def __repr__(self):
         return self._my_repr
 
 
-class OList(list):
-    _cache: Dict[T, Type[List[T]]] = {}
+class OList(list, Generic[T]):
+    _cache: Dict[type, Type[list]] = {}
 
     @classmethod
-    def __class_getitem__(cls, single_type: Union[T, Tuple[T]]) -> Type[List[T]]:
+    def __class_getitem__(cls, single_type: Union[Type[typevars.T], Tuple[Type[typevars.T]]]) -> Type[List[typevars.T]]:
         if isinstance(single_type, tuple):
             if len(single_type) != 1:
                 raise TypeError(f"Too many arguments for {cls.__qualname__}: actual {len(single_type)}, expected 1")
@@ -56,12 +69,12 @@ class OList(list):
         return _list_deserializer_impl(value, cls._type)
 
 
-class ODict(dict):
-    _cache: Dict[
-        Tuple[K, V], Type[Dict[K, V]]] = {}
+class ODict(dict, Generic[K, V]):
+    _cache: Dict[Tuple[type, type], Type[dict]] = {}
 
     @classmethod
-    def __class_getitem__(cls, type_pair: Tuple[K, V]) -> Type[Dict[K, V]]:
+    def __class_getitem__(cls, type_pair: Tuple[Type[typevars.K], Type[typevars.V]]) -> Type[
+        Dict[typevars.K, typevars.V]]:
         if not isinstance(type_pair, tuple) or len(type_pair) != 2:
             length = 1 if not isinstance(type_pair, tuple) else len(type_pair)
             raise TypeError(f"Wrong number of arguments for {cls.__qualname__}: actual {length}, expected 2")
@@ -94,43 +107,62 @@ class ODict(dict):
 
 
 class OTuple(tuple):
-    _cache: Dict[TupleOfTypes_TypeVar, Type[TupleOfTypes_TypeVar]] = {}
+    _cache: Dict[Tuple[type, ...], Type[tuple]] = {}
 
     @overload
-    def __class_getitem__(cls, types: Tuple[T1]) -> Type[Tuple[T1]]:
+    def __class_getitem__(cls, types: Tuple[
+        Type[typevars.T1]]) -> \
+            Type[Tuple[typevars.T1]]:
         pass
 
     @overload
-    def __class_getitem__(cls, types: Tuple[T1, T2]) -> Type[Tuple[T1, T2]]:
+    def __class_getitem__(cls, types: Tuple[
+        Type[typevars.T1], Type[typevars.T2]]) -> \
+            Type[Tuple[typevars.T1, typevars.T2]]:
         pass
 
     @overload
-    def __class_getitem__(cls, types: Tuple[T1, T2, T3]) -> Type[Tuple[T1, T2, T3]]:
+    def __class_getitem__(cls, types: Tuple[
+        Type[typevars.T1], Type[typevars.T2], Type[typevars.T3]]) -> \
+            Type[Tuple[typevars.T1, typevars.T2, typevars.T3]]:
         pass
 
     @overload
-    def __class_getitem__(cls, types: Tuple[T1, T2, T3, T4]) -> Type[Tuple[T1, T2, T3, T4]]:
+    def __class_getitem__(cls, types: Tuple[
+        Type[typevars.T1], Type[typevars.T2], Type[typevars.T3], Type[typevars.T4]]) -> \
+            Type[Tuple[typevars.T1, typevars.T2, typevars.T3, typevars.T4]]:
         pass
 
     @overload
-    def __class_getitem__(cls, types: Tuple[T1, T2, T3, T4, T5]) -> Type[Tuple[T1, T2, T3, T4, T5]]:
+    def __class_getitem__(cls, types: Tuple[
+        Type[typevars.T1], Type[typevars.T2], Type[typevars.T3], Type[typevars.T4], Type[typevars.T5]]) -> \
+            Type[Tuple[typevars.T1, typevars.T2, typevars.T3, typevars.T4, typevars.T5]]:
         pass
 
     @overload
-    def __class_getitem__(cls, types: Tuple[T1, T2, T3, T4, T5, T6]) -> Type[Tuple[T1, T2, T3, T4, T5, T6]]:
+    def __class_getitem__(cls, types: Tuple[
+        Type[typevars.T1], Type[typevars.T2], Type[typevars.T3], Type[typevars.T4], Type[typevars.T5], Type[
+            typevars.T6]]) -> \
+            Type[Tuple[typevars.T1, typevars.T2, typevars.T3, typevars.T4, typevars.T5, typevars.T6]]:
         pass
 
     @overload
-    def __class_getitem__(cls, types: Tuple[T1, T2, T3, T4, T5, T6, T7]) -> Type[Tuple[T1, T2, T3, T4, T5, T6, T7]]:
+    def __class_getitem__(cls, types: Tuple[
+        Type[typevars.T1], Type[typevars.T2], Type[typevars.T3], Type[typevars.T4], Type[typevars.T5], Type[
+            typevars.T6], Type[typevars.T7]]) -> \
+            Type[Tuple[typevars.T1, typevars.T2, typevars.T3, typevars.T4, typevars.T5, typevars.T6, typevars.T7]]:
         pass
 
     @overload
-    def __class_getitem__(cls, types: Tuple[T1, T2, T3, T4, T5, T6, T7, T8]) -> \
-            Type[Tuple[T1, T2, T3, T4, T5, T6, T7, T8]]:
+    def __class_getitem__(cls, types: Tuple[
+        Type[typevars.T1], Type[typevars.T2], Type[typevars.T3], Type[typevars.T4], Type[typevars.T5], Type[
+            typevars.T6], Type[typevars.T7], Type[typevars.T8]]) -> \
+            Type[Tuple[
+                typevars.T1, typevars.T2, typevars.T3, typevars.T4, typevars.T5, typevars.T6, typevars.T7, typevars.T8]]:
         pass
 
     @classmethod
-    def __class_getitem__(cls, types: TupleOfTypes_TypeVar) -> Type[TupleOfTypes_TypeVar]:
+    def __class_getitem__(cls, types: Tuple[type, ...]) -> Type[tuple]:
         if not isinstance(types, tuple):
             types = (types,)
 

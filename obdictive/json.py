@@ -3,8 +3,8 @@ JSON serialization
 """
 
 import json
-
-from . import serialization, deserialization
+from .serialization import dump
+from .deserialization import load
 
 
 def json_loads(t: type, s: str, *, cls=None, object_hook=None, parse_float=None,
@@ -44,7 +44,7 @@ def json_loads(t: type, s: str, *, cls=None, object_hook=None, parse_float=None,
     d = json.loads(s, cls=cls, object_hook=object_hook, parse_float=parse_float,
                    parse_int=parse_int, parse_constant=parse_constant, object_pairs_hook=object_pairs_hook,
                    **kw)
-    return dict_to_obj.load(t, d)
+    return load(t, d)
 
 
 def json_dumps(obj, *, skipkeys=False, ensure_ascii=True, check_circular=True,
@@ -90,6 +90,7 @@ def json_dumps(obj, *, skipkeys=False, ensure_ascii=True, check_circular=True,
         the ``cls`` kwarg; otherwise ``JSONEncoder`` is used.
 
         """
-    d = obj_to_dict.dump(obj)
-    return json.dumps(d, skipkeys=skipkeys, ensure_ascii=ensure_ascii, check_circular=check_circular, allow_nan=allow_nan,
-               cls=cls, indent=indent, separators=separators, default=default, sort_keys=sort_keys, **kw)
+    d = dump(obj)
+    return json.dumps(d, skipkeys=skipkeys, ensure_ascii=ensure_ascii, check_circular=check_circular,
+                      allow_nan=allow_nan,
+                      cls=cls, indent=indent, separators=separators, default=default, sort_keys=sort_keys, **kw)

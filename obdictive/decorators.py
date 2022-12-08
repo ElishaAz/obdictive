@@ -1,27 +1,28 @@
-from typing import Union, Callable, overload
+from typing import Union, Callable, overload, Optional
 
 from .default_serializers import _default_serializer, _default_deserializer
 from .deserialization import set_deserializer
 from .serialization import set_serializer
-from .type_vars import Class_TypeVar, Serializer_TypeVar, Deserializer_TypeVar
+from . import typevars, aliases
 
 
 @overload
-def serializable(*, serializer: Serializer_TypeVar = None, deserializer: Deserializer_TypeVar = None,
-                 deep_search=False) -> Callable[[Class_TypeVar], Class_TypeVar]:
+def serializable(*, serializer: Optional[typevars.Serializer] = None,
+                 deserializer: Optional[typevars.Deserializer] = None,
+                 deep_search: bool = False) -> Callable[[typevars.Class], typevars.Class]:
     pass
 
 
 @overload
-def serializable(cls: Class_TypeVar, *, serializer: Serializer_TypeVar = None,
-                 deserializer: Deserializer_TypeVar = None,
-                 deep_search=False) -> Class_TypeVar:
+def serializable(cls: typevars.Class, *, serializer: Optional[typevars.Serializer] = None,
+                 deserializer: Optional[typevars.Deserializer] = None,
+                 deep_search: bool = False) -> typevars.Class:
     pass
 
 
-def serializable(cls: Class_TypeVar = None, *,
-                 serializer: Serializer_TypeVar = None, deserializer: Deserializer_TypeVar = None,
-                 deep_search=False) -> Union[Class_TypeVar, Callable[[Class_TypeVar], Class_TypeVar]]:
+def serializable(cls: Optional[typevars.Class] = None, *,
+                 serializer: Optional[aliases.Serializer] = None, deserializer: Optional[aliases.Deserializer] = None,
+                 deep_search: bool = False) -> Union[typevars.Class, Callable[[typevars.Class], typevars.Class]]:
     """
     A class decorator that marks it as serializable.
 
@@ -37,7 +38,7 @@ def serializable(cls: Class_TypeVar = None, *,
 
     """
 
-    def decorator(cls: Class_TypeVar) -> Class_TypeVar:
+    def decorator(cls: typevars.Class) -> typevars.Class:
         nonlocal serializer, deserializer
 
         found_serializer = serializer is not None
@@ -63,6 +64,8 @@ def serializable(cls: Class_TypeVar = None, *,
         if not found_deserializer:
             def deserializer(val: dict): _default_deserializer(cls, val)
 
+        assert serializer is not None
+        assert deserializer is not None
         set_serializer(cls, serializer)
         set_deserializer(cls, deserializer)
 
@@ -78,7 +81,7 @@ def serializable(cls: Class_TypeVar = None, *,
 SERIALIZER_MARK = "is_obdictive_serializer"
 
 
-def serializer(method: Serializer_TypeVar) -> Serializer_TypeVar:
+def serializer(method: typevars.Serializer) -> typevars.Serializer:
     """
     A method decorator that marks it as the serializer for that class. The class must be decorated with `serializable`.
     """
@@ -86,12 +89,12 @@ def serializer(method: Serializer_TypeVar) -> Serializer_TypeVar:
     return method
 
 
-def serializer_for(cls: type) -> Callable[[Serializer_TypeVar], Serializer_TypeVar]:
+def serializer_for(cls: type) -> Callable[[typevars.Serializer], typevars.Serializer]:
     """
     A function decorator that sets it as the serializer for type `cls`.
     """
 
-    def my_serializer(method: Serializer_TypeVar) -> Serializer_TypeVar:
+    def my_serializer(method: typevars.Serializer) -> typevars.Serializer:
         set_serializer(cls, method)
         return method
 
@@ -104,7 +107,7 @@ def serializer_for(cls: type) -> Callable[[Serializer_TypeVar], Serializer_TypeV
 DESERIALIZER_MARK = "is_obdictive_deserializer"
 
 
-def deserializer(method: Deserializer_TypeVar) -> Deserializer_TypeVar:
+def deserializer(method: typevars.DeserializerWithType) -> typevars.DeserializerWithType:
     """
     A method decorator that marks it as the deserializer for that class. The class must be decorated with `serializable`.
     """
@@ -112,12 +115,12 @@ def deserializer(method: Deserializer_TypeVar) -> Deserializer_TypeVar:
     return method
 
 
-def deserializer_for(cls: type) -> Callable[[Deserializer_TypeVar], Deserializer_TypeVar]:
+def deserializer_for(cls: type) -> Callable[[typevars.Deserializer], typevars.Deserializer]:
     """
     A function decorator that sets it as the serializer for type `cls`.
     """
 
-    def my_deserializer(method: Deserializer_TypeVar) -> Deserializer_TypeVar:
+    def my_deserializer(method: typevars.Deserializer) -> typevars.Deserializer:
         set_deserializer(cls, method)
         return method
 

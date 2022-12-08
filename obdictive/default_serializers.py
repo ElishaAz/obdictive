@@ -1,6 +1,8 @@
 from typing import Dict, Any
 
-from . import serialization, deserialization
+from . import aliases
+from .serialization import dump
+from .deserialization import load
 
 IGNORE_ANNOTATIONS = "_ignore_annot"
 EDIT_ANNOTATIONS = "_edit_annot"
@@ -8,7 +10,7 @@ ADD_ANNOTATIONS = "_add_annot"
 SET_ANNOTATIONS = "_annotations"
 
 
-def _default_serializer(self):
+def _default_serializer(self: aliases.Serializable) -> dict:
     """
     Serializes an object to a dict based on its annotations.
     """
@@ -16,11 +18,11 @@ def _default_serializer(self):
     for name, cls in get_annotations(self.__class__).items():
         if hasattr(self, name):
             val = getattr(self, name)
-            d[name] = obj_to_dict.dump(val)
+            d[name] = dump(val)
     return d
 
 
-def _default_deserializer(cls: type, value: dict):
+def _default_deserializer(cls: type, value: dict) -> aliases.Serializable:
     """
     Deserializes a dict to the given class based on its annotations.
     The constructor must allow passing no arguments.
@@ -32,10 +34,12 @@ def _default_deserializer(cls: type, value: dict):
     for name, cls in annotations.items():
         if name in value:
             value = value[name]
-            value = dict_to_obj.load(cls, value)
-            setattr(self, name, value)
+            loaded_value = load(cls, value)
+            setattr(self, name, loaded_value)
         elif hasattr(self.__class__, name):
             setattr(self, name, getattr(self.__class__, name))
+
+    return self
 
 
 annotations_cache: Dict[type, dict] = {}

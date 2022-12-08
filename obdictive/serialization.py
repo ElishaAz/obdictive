@@ -1,6 +1,6 @@
 from typing import Any, Dict, Callable, Union
 
-from .type_vars import Serializer_TypeVar, Serializable_TypeVar, Serialized_TypeVar
+from . import typevars, aliases
 
 
 def echo(x): return x
@@ -27,7 +27,7 @@ def _tuple_serializer_impl(t: tuple):
     return tuple(dump(i) for i in t)
 
 
-serializers_map: Dict[type, Serializer_TypeVar] = {
+serializers_map: Dict[type, aliases.Serializer] = {
     int: echo,
     str: echo,
     float: echo,
@@ -42,15 +42,16 @@ The `@serializer` decorator adds to this dictionary.
 """
 
 
-def dump(obj: Serializable_TypeVar) -> Serialized_TypeVar:
+def dump(obj: aliases.Serializable) -> aliases.Serialized:
     """
     Convert an object to a dictionary.
     """
     if type(obj) in serializers_map:
         return serializers_map[type(obj)](obj)
+    return None
 
 
-def set_serializer(cls: type, method: Serializer_TypeVar) -> None:
+def set_serializer(cls: type, method: aliases.Serializer) -> None:
     """
     Set `method` as the serializer for type `cls`.
     """
