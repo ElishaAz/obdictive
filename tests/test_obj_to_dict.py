@@ -1,4 +1,5 @@
-import obdictive.obj_to_dict as otd
+import obdictive.serialization as otd
+from obdictive.decorators import serializer_for
 
 
 class ExampleClass:
@@ -71,7 +72,7 @@ def test_dump_complex():
 def test_serializer_for():
     orig = otd.serializers_map[int]
 
-    @otd.serializer_for(int)
+    @serializer_for(int)
     def serializer(i: int):
         return str(i)
 

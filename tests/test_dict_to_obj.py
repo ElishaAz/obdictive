@@ -1,6 +1,7 @@
 from typing import Tuple
 
-import obdictive.dict_to_obj as dto
+import obdictive.deserialization as dto
+from obdictive.decorators import deserializer_for
 
 
 class ExampleClass:
@@ -15,7 +16,7 @@ class ExampleClass:
         return F"ExampleClass[i={self.i}, s={self.s}]"
 
 
-@dto.deserializer_for(ExampleClass)
+@deserializer_for(ExampleClass)
 def ec_deserializer(val: dict):
     return ExampleClass(dto.load(int, val['i']), dto.load(str, val['s']))
 
@@ -57,7 +58,7 @@ class ComplexExampleClass:
 dto.set_deserializer(Tuple[int, str, ExampleClass], lambda v: dto._tuple_deserializer_impl(v, int, str, ExampleClass))
 
 
-@dto.deserializer_for(ComplexExampleClass)
+@deserializer_for(ComplexExampleClass)
 def cec_deserializer(val: dict):
     return ComplexExampleClass(dto.load(Tuple[int, str, ExampleClass], val['t']),
                                dto.load(ExampleClass, val['ec']))

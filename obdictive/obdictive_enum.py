@@ -1,7 +1,7 @@
 import enum
 
-from obdictive.dict_to_obj import set_deserializer
-from obdictive.obj_to_dict import set_serializer
+from .deserialization import set_deserializer
+from .serialization import set_serializer
 
 
 def enum_serializer(self):
@@ -16,7 +16,7 @@ def create_enum_deserializer(cls):
 
 
 def serializable_enum(cls):
-    if not issubclass(cls, enum.Enum):
+    if not issubclass(cls, (enum.Enum, enum.IntEnum, enum.StrEnum)):
         raise TypeError(F"{cls} must be a subclass of enum.Enum to use `serializable_enum` on it!")
 
     set_serializer(cls, enum_serializer)

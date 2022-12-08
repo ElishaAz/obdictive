@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Tuple
 
 from obdictive import *
 
@@ -28,3 +28,8 @@ if __name__ == '__main__':
 
     assert json_dumps(t2) == json_dumps(t2)
     assert json_loads(Test, json_dumps(t2)) == t2
+
+    t = Tuple[int, str, float]
+
+    i = t[0]
+

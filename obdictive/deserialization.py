@@ -2,7 +2,7 @@
 Converting a dict to an object (deserialization).
 """
 
-from typing import Any, Dict, List, Union, Callable, TypeVar
+from typing import Any, Dict, List, Union, Callable, TypeVar, Tuple
 
 from . import config
 from .type_vars import Deserializer_TypeVar, Serialized_TypeVar, Serializable_TypeVar
@@ -42,9 +42,9 @@ def load(cls: type, value: Serialized_TypeVar) -> Serializable_TypeVar:
     :param value: The dictionary.
     :return: An instance of type `cls` equivalent to `value`.
     """
-    #                                              Special types in Python 3.7+                 Python 3.5-3.6
-    if config.use_special_types_black_magic and not isinstance(cls, type) or isinstance(cls, List) or isinstance(cls,
-                                                                                                                 Dict):
+    #                                          Special types in Python 3.7+                 Python 3.5-3.6
+    if config.use_special_types_black_magic and not isinstance(cls, type) or \
+            isinstance(cls, List) or isinstance(cls, Dict) or isinstance(cls, Tuple):
         if hasattr(cls, '__origin__'):
             cls: List.__class__
             ty = cls.__extra__ if hasattr(cls, '__extra__') else cls.__origin__
@@ -71,31 +71,8 @@ def load(cls: type, value: Serialized_TypeVar) -> Serializable_TypeVar:
             raise TypeError(F"{value} is not of type {cls.__name__}, and cannot be converted")
 
 
-DESERIALIZER_MARK = "is_obdictive_deserializer"
-
-
-def deserializer(method: Deserializer_TypeVar) -> Deserializer_TypeVar:
-    """
-    A method decorator that marks it as the deserializer for that class. The class must be decorated with `serializable`.
-    """
-    setattr(method, DESERIALIZER_MARK, True)
-    return method
-
-
 def set_deserializer(cls: type, method: Deserializer_TypeVar) -> None:
     """
     Set `method` as the deserializer for type `cls`.
     """
     deserializers_map[cls] = method
-
-
-def deserializer_for(cls: type) -> Callable[[Deserializer_TypeVar], Deserializer_TypeVar]:
-    """
-    A function decorator that sets it as the serializer for type `cls`.
-    """
-
-    def my_deserializer(method: Deserializer_TypeVar) -> Deserializer_TypeVar:
-        set_deserializer(cls, method)
-        return method
-
-    return my_deserializer

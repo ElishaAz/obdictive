@@ -1,6 +1,6 @@
 from typing import Any, Dict, Callable, Union
 
-from obdictive.type_vars import Serializer_TypeVar, Serializable_TypeVar, Serialized_TypeVar
+from .type_vars import Serializer_TypeVar, Serializable_TypeVar, Serialized_TypeVar
 
 
 def echo(x): return x
@@ -50,31 +50,8 @@ def dump(obj: Serializable_TypeVar) -> Serialized_TypeVar:
         return serializers_map[type(obj)](obj)
 
 
-SERIALIZER_MARK = "is_obdictive_serializer"
-
-
-def serializer(method: Serializer_TypeVar) -> Serializer_TypeVar:
-    """
-    A method decorator that marks it as the serializer for that class. The class must be decorated with `serializable`.
-    """
-    setattr(method, SERIALIZER_MARK, True)
-    return method
-
-
 def set_serializer(cls: type, method: Serializer_TypeVar) -> None:
     """
     Set `method` as the serializer for type `cls`.
     """
     serializers_map[cls] = method
-
-
-def serializer_for(cls: type) -> Callable[[Serializer_TypeVar], Serializer_TypeVar]:
-    """
-    A function decorator that sets it as the serializer for type `cls`.
-    """
-
-    def my_serializer(method: Serializer_TypeVar) -> Serializer_TypeVar:
-        set_serializer(cls, method)
-        return method
-
-    return my_serializer

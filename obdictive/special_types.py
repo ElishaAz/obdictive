@@ -1,8 +1,10 @@
-from typing import Type, Dict, Union, Tuple
+from typing import Type, Dict, Union, Tuple, List, overload
 
-from .dict_to_obj import deserializer, _list_deserializer_impl, _dict_deserializer_impl, _tuple_deserializer_impl
-from .obj_to_dict import serializer, _list_serializer_impl, _dict_serializer_impl, _tuple_serializer_impl
+from .decorators import serializer, deserializer
+from .deserialization import _list_deserializer_impl, _dict_deserializer_impl, _tuple_deserializer_impl
+from .serialization import _list_serializer_impl, _dict_serializer_impl, _tuple_serializer_impl
 from .obdictive_class import serializable
+from .type_vars import T, K, V, T1, T2, T3, T4, T5, T6, T7, T8, TupleOfTypes_TypeVar
 
 
 def _full_name(cls):
@@ -18,10 +20,10 @@ class _OMeta(type):
 
 
 class OList(list):
-    _cache: Dict[type, Type[list]] = {}
+    _cache: Dict[T, Type[List[T]]] = {}
 
     @classmethod
-    def __class_getitem__(cls, single_type: Union[Tuple[type], type]) -> Type[list]:
+    def __class_getitem__(cls, single_type: Union[T, Tuple[T]]) -> Type[List[T]]:
         if isinstance(single_type, tuple):
             if len(single_type) != 1:
                 raise TypeError(f"Too many arguments for {cls.__qualname__}: actual {len(single_type)}, expected 1")
@@ -30,7 +32,7 @@ class OList(list):
         if single_type in cls._cache:
             return cls._cache[single_type]
 
-        @serializable
+        @serializable(deep_search=True)
         class OListVar(OList, metaclass=_OMeta):
             _type = single_type
             _my_repr = F"{_full_name(cls)}[{_full_name(single_type)}]"
@@ -55,10 +57,11 @@ class OList(list):
 
 
 class ODict(dict):
-    _cache: Dict[Tuple[type, type], Type[dict]] = {}
+    _cache: Dict[
+        Tuple[K, V], Type[Dict[K, V]]] = {}
 
     @classmethod
-    def __class_getitem__(cls, type_pair: Tuple[type, type]) -> Type[dict]:
+    def __class_getitem__(cls, type_pair: Tuple[K, V]) -> Type[Dict[K, V]]:
         if not isinstance(type_pair, tuple) or len(type_pair) != 2:
             length = 1 if not isinstance(type_pair, tuple) else len(type_pair)
             raise TypeError(f"Wrong number of arguments for {cls.__qualname__}: actual {length}, expected 2")
@@ -66,7 +69,7 @@ class ODict(dict):
         if type_pair in cls._cache:
             return cls._cache[type_pair]
 
-        @serializable
+        @serializable(deep_search=True)
         class ODictVar(ODict, metaclass=_OMeta):
             _t_key = type_pair[0]
             _t_value = type_pair[1]
@@ -91,17 +94,50 @@ class ODict(dict):
 
 
 class OTuple(tuple):
-    _cache: Dict[Tuple[type, ...], Type[tuple]] = {}
+    _cache: Dict[TupleOfTypes_TypeVar, Type[TupleOfTypes_TypeVar]] = {}
+
+    @overload
+    def __class_getitem__(cls, types: Tuple[T1]) -> Type[Tuple[T1]]:
+        pass
+
+    @overload
+    def __class_getitem__(cls, types: Tuple[T1, T2]) -> Type[Tuple[T1, T2]]:
+        pass
+
+    @overload
+    def __class_getitem__(cls, types: Tuple[T1, T2, T3]) -> Type[Tuple[T1, T2, T3]]:
+        pass
+
+    @overload
+    def __class_getitem__(cls, types: Tuple[T1, T2, T3, T4]) -> Type[Tuple[T1, T2, T3, T4]]:
+        pass
+
+    @overload
+    def __class_getitem__(cls, types: Tuple[T1, T2, T3, T4, T5]) -> Type[Tuple[T1, T2, T3, T4, T5]]:
+        pass
+
+    @overload
+    def __class_getitem__(cls, types: Tuple[T1, T2, T3, T4, T5, T6]) -> Type[Tuple[T1, T2, T3, T4, T5, T6]]:
+        pass
+
+    @overload
+    def __class_getitem__(cls, types: Tuple[T1, T2, T3, T4, T5, T6, T7]) -> Type[Tuple[T1, T2, T3, T4, T5, T6, T7]]:
+        pass
+
+    @overload
+    def __class_getitem__(cls, types: Tuple[T1, T2, T3, T4, T5, T6, T7, T8]) -> \
+            Type[Tuple[T1, T2, T3, T4, T5, T6, T7, T8]]:
+        pass
 
     @classmethod
-    def __class_getitem__(cls, types: Tuple[type, ...]) -> Type[tuple]:
+    def __class_getitem__(cls, types: TupleOfTypes_TypeVar) -> Type[TupleOfTypes_TypeVar]:
         if not isinstance(types, tuple):
             types = (types,)
 
         if types in cls._cache:
             return cls._cache[types]
 
-        @serializable
+        @serializable(deep_search=True)
         class OTupleVar(OTuple, metaclass=_OMeta):
             _types = types
             _my_repr = F"{_full_name(cls)}[{', '.join(_full_name(t) for t in types)}]"

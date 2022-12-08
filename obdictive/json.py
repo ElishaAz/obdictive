@@ -4,7 +4,7 @@ JSON serialization
 
 import json
 
-from . import obj_to_dict, dict_to_obj
+from . import serialization, deserialization
 
 
 def json_loads(t: type, s: str, *, cls=None, object_hook=None, parse_float=None,
