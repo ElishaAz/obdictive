@@ -76,8 +76,8 @@ class Obdictive:
         for name, cls in annotations.items():
             if name in kwargs:  # argument is in keyword arguments
                 value = kwargs[name]
-                value = load(cls, value)
-                setattr(self, name, value)
+                loaded_value = load(cls, value)
+                setattr(self, name, loaded_value)
             elif hasattr(self.__class__, name):
                 setattr(self, name, getattr(self.__class__, name))
 

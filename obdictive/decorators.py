@@ -62,7 +62,7 @@ def serializable(cls: Optional[typevars.Class] = None, *,
             serializer = _default_serializer
 
         if not found_deserializer:
-            def deserializer(val: dict): _default_deserializer(cls, val)
+            def deserializer(val: dict): return _default_deserializer(cls, val)
 
         assert serializer is not None
         assert deserializer is not None

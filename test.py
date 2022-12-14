@@ -11,7 +11,7 @@ class TestInner(Obdictive):
 class Test(Obdictive):
     i: int
     s: str
-    ti: List[TestInner]
+    ti: OList[TestInner]
 
 
 if __name__ == '__main__':

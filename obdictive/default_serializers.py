@@ -27,14 +27,17 @@ def _default_deserializer(cls: type, value: dict) -> aliases.Serializable:
     Deserializes a dict to the given class based on its annotations.
     The constructor must allow passing no arguments.
     """
+    if isinstance(value, cls):
+        return value
+
     self = cls()
 
     annotations = get_annotations(cls)
 
     for name, cls in annotations.items():
         if name in value:
-            value = value[name]
-            loaded_value = load(cls, value)
+            current_value = value[name]
+            loaded_value = load(cls, current_value)
             setattr(self, name, loaded_value)
         elif hasattr(self.__class__, name):
             setattr(self, name, getattr(self.__class__, name))
@@ -52,7 +55,7 @@ def get_annotations(cls: type, reload_cache=False) -> dict:
 
     annotations = {}
     for c in reversed(cls.mro()):
-        annot = c.__dict__.get(SET_ANNOTATIONS, None) or c.__dict__.get(SET_ANNOTATIONS, {})
+        annot = c.__dict__.get(SET_ANNOTATIONS, None) or c.__dict__.get("__annotations__", {})
         ignore = c.__dict__.get(IGNORE_ANNOTATIONS, set())
         add = c.__dict__.get(ADD_ANNOTATIONS, {})
         edit = c.__dict__.get(EDIT_ANNOTATIONS, {})

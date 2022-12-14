@@ -1,4 +1,4 @@
-# mypy: disable-error-code=override
+# mypy: disable-error-code="override,misc"
 from __future__ import annotations
 
 import sys
@@ -27,7 +27,7 @@ def _full_name(cls):
         return F"{cls.__module__}.{cls.__qualname__}"
 
 
-class _OMeta(type(list), type(dict), type(tuple)):  # type: ignore[misc]
+class _OMeta(type):  # type: ignore[misc]
     def __repr__(self):
         return self._my_repr
 
@@ -51,7 +51,6 @@ class OList(list, Generic[T]):
             _my_repr = F"{_full_name(cls)}[{_full_name(single_type)}]"
             pass
 
-        OListVar.type = single_type
         cls._cache[single_type] = OListVar
         return OListVar
 
