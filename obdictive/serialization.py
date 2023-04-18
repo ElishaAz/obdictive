@@ -1,30 +1,10 @@
-from typing import Any, Dict, Callable, Union
+from typing import Dict
 
 from . import typevars, aliases
+from .generics import generic_serializers_map
 
 
-def echo(x): return x
-
-
-def _list_serializer_impl(l: list):
-    """
-    List serializer implementation.
-    """
-    return [dump(i) for i in l]
-
-
-def _dict_serializer_impl(d: dict):
-    """
-    Dictionary serializer implementation.
-    """
-    return {k: dump(v) for k, v in d.items()}
-
-
-def _tuple_serializer_impl(t: tuple):
-    """
-    Tuple serializer implementation.
-    """
-    return tuple(dump(i) for i in t)
+def echo(x: typevars.T) -> typevars.T: return x
 
 
 serializers_map: Dict[type, aliases.Serializer] = {
@@ -32,9 +12,6 @@ serializers_map: Dict[type, aliases.Serializer] = {
     str: echo,
     float: echo,
     bool: echo,
-    list: _list_serializer_impl,
-    dict: _dict_serializer_impl,
-    tuple: _tuple_serializer_impl,
 }
 """
 A dictionary that defines how an object can be serialized into a dict.
@@ -48,6 +25,9 @@ def dump(obj: aliases.Serializable) -> aliases.Serialized:
     """
     if type(obj) in serializers_map:
         return serializers_map[type(obj)](obj)
+
+    elif type(obj) in generic_serializers_map:
+        return generic_serializers_map[type(obj)](obj)
     return None
 
 

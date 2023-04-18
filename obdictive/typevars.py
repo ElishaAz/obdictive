@@ -1,3 +1,4 @@
+import enum
 from typing import TypeVar, Callable
 
 from . import aliases
@@ -6,6 +7,8 @@ Serializable = TypeVar('Serializable', bound=aliases.Serializable)
 Serialized = TypeVar('Serialized', bound=aliases.Serialized)
 
 Class = TypeVar('Class', bound=type)
+
+Enum = TypeVar('Enum', bound=type[enum.Enum])
 
 Deserializer = TypeVar('Deserializer', bound=aliases.Deserializer)
 DeserializerWithType = TypeVar('DeserializerWithType',

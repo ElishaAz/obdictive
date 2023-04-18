@@ -1,3 +1,5 @@
+import dataclasses
+import enum
 from typing import List, Tuple
 
 from obdictive import *
@@ -14,6 +16,13 @@ class Test(Obdictive):
     ti: OList[TestInner]
 
 
+@serializable_enum
+class TestEnum(enum.Enum):
+    A = 0
+    B = 1
+    C = 2
+
+
 if __name__ == '__main__':
     assert load(int, "5") == 5
 
@@ -28,3 +37,5 @@ if __name__ == '__main__':
 
     assert json_dumps(t2) == json_dumps(t2)
     assert json_loads(Test, json_dumps(t2)) == t2
+
+    assert load(TestEnum, dump(TestEnum.A)) == TestEnum.A

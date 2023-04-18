@@ -4,7 +4,9 @@ Obdictive class and class-oriented methods (serializable).
 from __future__ import annotations
 
 import sys
-from typing import Any
+from typing import Any, Union
+
+from .generics import generics_map
 
 if sys.version_info >= (3, 9):
     from builtins import dict as Dict, list as List
@@ -15,7 +17,7 @@ else:
 
 from .serialization import dump
 from .deserialization import load
-from . import json, config
+from . import json, config, aliases
 from .decorators import serializable, serializer, deserializer
 from .default_serializers import get_annotations
 
@@ -76,8 +78,7 @@ class Obdictive:
         for name, cls in annotations.items():
             if name in kwargs:  # argument is in keyword arguments
                 value = kwargs[name]
-                loaded_value = load(cls, value)
-                setattr(self, name, loaded_value)
+                setattr(self, name, value)
             elif hasattr(self.__class__, name):
                 setattr(self, name, getattr(self.__class__, name))
 
@@ -93,7 +94,13 @@ class Obdictive:
     @classmethod
     @deserializer
     def _deserializer(cls, val):
-        return cls(**val)
+        kwargs = dict()
+        for name, typ in get_annotations(cls).items():
+            if name in val:  # argument is in keyword arguments
+                value = val[name]
+                loaded_value = load(typ, value)
+                kwargs[name] = loaded_value
+        return cls(**kwargs)
 
     @classmethod
     def __init_subclass__(cls, **kwargs):
@@ -103,7 +110,7 @@ class Obdictive:
         :return:
         """
         super().__init_subclass__(**kwargs)
-        serializable(cls)
+        serializable(cls, deep_search=True)
 
     def __eq__(self, o: object) -> bool:
         if o is None:
@@ -156,7 +163,7 @@ def _list_str(lst: list):
 _sorted_annotations_cache: Dict[type, List[str]] = {}
 
 
-def _get_sorted_annotations(cls: type):
+def _get_sorted_annotations(cls: type) -> list:
     global _sorted_annotations_cache
     if cls in _sorted_annotations_cache:
         return _sorted_annotations_cache[cls]

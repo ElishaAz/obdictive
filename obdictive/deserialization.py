@@ -4,34 +4,23 @@ Converting a dict to an object (deserialization).
 from __future__ import annotations
 
 import sys
-from typing import cast
+
+from .generics import _list_deserializer_impl, _dict_deserializer_impl, _tuple_deserializer_impl, generics_map, \
+    generic_deserializers_map
+from .obdictive_exceptions import ObdictiveDeserializationException
 
 if sys.version_info >= (3, 9):
-    from builtins import tuple as Tuple, dict as Dict, list as List
+    # noinspection PyPep8Naming
+    from builtins import tuple as Tuple, dict as Dict, list as List, type as Type
 else:
     # Legacy generic type annotation classes
     # Deprecated in Python 3.9
-    # Remove once we no longer support Python 3.8 or lower
-    from typing import List, Dict, Tuple
+    from typing import List, Dict, Tuple, Type
+from typing import Any, cast
 
 from . import config, aliases
 
-
-def _list_deserializer_impl(value: list, t_item: type):
-    return [load(t_item, x) for x in value]
-
-
-def _dict_deserializer_impl(value: dict, t_key: type, t_value: type):
-    return {load(t_key, k): load(t_value, v) for k, v in value.items()}
-
-
-def _tuple_deserializer_impl(value: tuple, *types: type):
-    return tuple(load(t, v) for t, v in zip(types, value))
-
-
-# Deserializer = Callable[[Union[Dict[str, Any], Any]], Any]
-
-deserializers_map: Dict[type, aliases.Deserializer] = {
+deserializers_map: Dict[Type[Any], aliases.Deserializer] = {
     int: int,
     str: str,
     float: float,
@@ -43,7 +32,7 @@ The `@deserializer` decorator adds to this dictionary.
 """
 
 
-def load(cls: type, value: aliases.Serialized) -> aliases.Serializable:
+def load(cls: Type[Any], value: aliases.Serialized) -> aliases.Serializable:
     """
     Convert a dictionary back to a python object.
 
@@ -52,7 +41,7 @@ def load(cls: type, value: aliases.Serialized) -> aliases.Serializable:
     :return: An instance of type `cls` equivalent to `value`.
     """
     #                                          Special types in Python 3.7+                 Python 3.5-3.6
-    if config.use_special_types_black_magic and not isinstance(cls, type) or \
+    if config.use_special_types_black_magic and not isinstance(cls, Type) or \
             isinstance(cls, List) or isinstance(cls, Dict) or isinstance(cls, Tuple):  # type: ignore
         if hasattr(cls, '__origin__'):
             cls_cast = cast(List.__class__, cls)  # type: ignore[valid-type]
@@ -67,20 +56,23 @@ def load(cls: type, value: aliases.Serialized) -> aliases.Serializable:
             if ty == dict:
                 t_key, t_value = cls_cast.__args__[0:2]  # type: ignore[attr-defined]
                 value_dict = cast(dict, value)
-                return _dict_deserializer_impl(value_dict, t_key, t_value)
+                return _dict_deserializer_impl(value_dict, (t_key, t_value))
             if ty == tuple:
                 types = cls_cast.__args__  # type: ignore[attr-defined]
                 value_tuple = cast(tuple, value)
-                return _tuple_deserializer_impl(value_tuple, *types)
+                return _tuple_deserializer_impl(value_tuple, types)
         return value
     else:
-        if cls in deserializers_map:
+        if cls in generics_map:
+            base_cls, types = generics_map[cls]
+            return generic_deserializers_map[base_cls](value, types)
+        elif cls in deserializers_map:
             return deserializers_map[cls](value)
         else:
             # for map_type, map_method in load_map.items():
             #     if issubclass(t, map_type):
             #         return map_method(value)
-            raise TypeError(F"{value} is not of type {cls.__name__}, and cannot be converted")
+            raise ObdictiveDeserializationException(F"{value} is not of type {cls.__name__}, and cannot be converted")
 
 
 def set_deserializer(cls: type, method: aliases.Deserializer) -> None:

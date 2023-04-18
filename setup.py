@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='obdictive',
-    version='0.1.0',
+    version='0.1.1',
     description='Serialization of python objects to dictionaries and JSON using annotations.',
     url='https://github.com/ElishaAz/dict_obj',
     author='Elisha Azaria',

@@ -14,8 +14,8 @@ else:
     from typing import List, Dict, Tuple, Type
 
 from .decorators import serializer, deserializer
-from .deserialization import _list_deserializer_impl, _dict_deserializer_impl, _tuple_deserializer_impl
-from .serialization import _list_serializer_impl, _dict_serializer_impl, _tuple_serializer_impl
+from .generics import _list_deserializer_impl, _dict_deserializer_impl, _tuple_deserializer_impl, _list_serializer_impl, \
+    _dict_serializer_impl, _tuple_serializer_impl
 from .obdictive_class import serializable
 from . import typevars
 
@@ -102,7 +102,7 @@ class ODict(dict, Generic[K, V]):
             raise TypeError(F"{cls.__qualname__} cannot be used as a type annotation directly!")
         # noinspection PyUnresolvedReferences
         # As we just verified that _t_key and _t_value exist.
-        return _dict_deserializer_impl(value, cls._t_key, cls._t_value)
+        return _dict_deserializer_impl(value, (cls._t_key, cls._t_value))
 
 
 class OTuple(tuple):

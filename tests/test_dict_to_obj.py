@@ -1,6 +1,7 @@
 from typing import Tuple
 
 import obdictive.deserialization as dto
+import obdictive.generics
 from obdictive.decorators import deserializer_for
 
 
@@ -22,24 +23,26 @@ def ec_deserializer(val: dict):
 
 
 def test__list_deserializer_impl():
-    assert dto._list_deserializer_impl([1, 2, 3], int) == [1, 2, 3]
-    assert dto._list_deserializer_impl([{'i': 1, 's': 'a'}, {'i': 2, 's': 'b'}, {'i': 3, 's': 'c'}], ExampleClass) == \
+    assert obdictive.generics._list_deserializer_impl([1, 2, 3], (int,)) == [1, 2, 3]
+    assert obdictive.generics._list_deserializer_impl([{'i': 1, 's': 'a'}, {'i': 2, 's': 'b'}, {'i': 3, 's': 'c'}],
+                                                      (ExampleClass,)) == \
            [ExampleClass(1, 'a'), ExampleClass(2, 'b'), ExampleClass(3, 'c')]
 
 
 def test__dict_deserializer_impl():
-    assert dto._dict_deserializer_impl({'a': 1, 'b': 2, 'c': 3}, str, int) == {'a': 1, 'b': 2, 'c': 3}
-    assert dto._dict_deserializer_impl({'a': {'i': 1, 's': 'a'}, 'b': {'i': 2, 's': 'b'}, 'c': {'i': 3, 's': 'c'}},
-                                       str, ExampleClass) == \
+    assert obdictive.generics._dict_deserializer_impl({'a': 1, 'b': 2, 'c': 3}, (str, int)) == {'a': 1, 'b': 2, 'c': 3}
+    assert obdictive.generics._dict_deserializer_impl(
+        {'a': {'i': 1, 's': 'a'}, 'b': {'i': 2, 's': 'b'}, 'c': {'i': 3, 's': 'c'}},
+        (str, ExampleClass)) == \
            {'a': ExampleClass(1, 'a'), 'b': ExampleClass(2, 'b'), 'c': ExampleClass(3, 'c')}
 
 
 def test__tuple_deserializer_impl():
-    assert dto._tuple_deserializer_impl((1, 2, 3), int, int, int) == (1, 2, 3)
-    assert dto._tuple_deserializer_impl(({'i': 1, 's': 'a'}, {'i': 2, 's': 'b'}, {'i': 3, 's': 'c'}),
-                                        ExampleClass, ExampleClass, ExampleClass) == \
+    assert obdictive.generics._tuple_deserializer_impl((1, 2, 3), (int, int, int)) == (1, 2, 3)
+    assert obdictive.generics._tuple_deserializer_impl(({'i': 1, 's': 'a'}, {'i': 2, 's': 'b'}, {'i': 3, 's': 'c'}),
+                                                       (ExampleClass, ExampleClass, ExampleClass)) == \
            (ExampleClass(1, 'a'), ExampleClass(2, 'b'), ExampleClass(3, 'c'))
-    assert dto._tuple_deserializer_impl((1, 'a', {'i': 2, 's': 'b'}), int, str, ExampleClass) == \
+    assert obdictive.generics._tuple_deserializer_impl((1, 'a', {'i': 2, 's': 'b'}), (int, str, ExampleClass)) == \
            (1, 'a', ExampleClass(2, 'b'))
 
 
@@ -55,7 +58,8 @@ class ComplexExampleClass:
         return F"ComplexExampleClass[t={self.t}, ec={self.ec}]"
 
 
-dto.set_deserializer(Tuple[int, str, ExampleClass], lambda v: dto._tuple_deserializer_impl(v, int, str, ExampleClass))
+dto.set_deserializer(Tuple[int, str, ExampleClass],
+                     lambda v: obdictive.generics._tuple_deserializer_impl(v, (int, str, ExampleClass)))
 
 
 @deserializer_for(ComplexExampleClass)

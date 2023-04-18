@@ -2,8 +2,8 @@ from typing import Union, Callable, overload, Optional
 
 from .default_serializers import _default_serializer, _default_deserializer
 from .deserialization import set_deserializer
-from .serialization import set_serializer
 from . import typevars, aliases
+from .serialization import set_serializer
 
 
 @overload

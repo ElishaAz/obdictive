@@ -2,7 +2,7 @@
 Configuration for the obdictive package
 """
 
-use_special_types_black_magic: bool = True
+use_special_types_black_magic: bool = False
 """Use black magic to serialize special types (Dict[str,T] and List[T])."""
 
 hash_dict_class: bool = True

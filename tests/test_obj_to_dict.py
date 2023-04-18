@@ -1,3 +1,4 @@
+import obdictive.generics as og
 import obdictive.serialization as otd
 from obdictive.decorators import serializer_for
 
@@ -17,19 +18,19 @@ otd.set_serializer(ExampleClass, ec_serializer)
 
 
 def test__list_serializer_impl():
-    assert otd._list_serializer_impl([1, 2, 3]) == [1, 2, 3]
-    assert otd._list_serializer_impl([ExampleClass(1, 2.2, '3'), ExampleClass(4, 5.5, '6')]) == \
+    assert og._list_serializer_impl([1, 2, 3]) == [1, 2, 3]
+    assert og._list_serializer_impl([ExampleClass(1, 2.2, '3'), ExampleClass(4, 5.5, '6')]) == \
            [{'i': 1, 'f': 2.2, 's': '3'}, {'i': 4, 'f': 5.5, 's': '6'}]
 
 
 def test__dict_serializer_impl():
-    assert otd._dict_serializer_impl({'a': 1, 'b': 2}) == {'a': 1, 'b': 2}
-    assert otd._dict_serializer_impl({'a': ExampleClass(1, 2.2, '3')}) == {'a': {'i': 1, 'f': 2.2, 's': '3'}}
+    assert og._dict_serializer_impl({'a': 1, 'b': 2}) == {'a': 1, 'b': 2}
+    assert og._dict_serializer_impl({'a': ExampleClass(1, 2.2, '3')}) == {'a': {'i': 1, 'f': 2.2, 's': '3'}}
 
 
 def test__tuple_serializer_impl():
-    assert otd._tuple_serializer_impl(('1', 2, 3.3)) == ('1', 2, 3.3)
-    assert otd._tuple_serializer_impl((1, '2', ExampleClass(3, 4.4, '5'))) == (1, '2', {'i': 3, 'f': 4.4, 's': '5'})
+    assert og._tuple_serializer_impl(('1', 2, 3.3)) == ('1', 2, 3.3)
+    assert og._tuple_serializer_impl((1, '2', ExampleClass(3, 4.4, '5'))) == (1, '2', {'i': 3, 'f': 4.4, 's': '5'})
 
 
 def test_dump():
